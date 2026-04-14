@@ -31,7 +31,7 @@ The following flow diagram shows a simplified overview of how a joystick command
      ├── dingo_gazebo                         Package containing gazebo files
      ├── dingo_hardware_interfacing
      |  ├── dingo_input_interfacing           Package containing files for receiving and interpreting commands (From a joystick or keyboard)
-     |  ├── dingo_peripheral_interfacing      Package containing files for interfacing with the Arduino Nano, LCD screen and IMU
+     |  ├── dingo_peripheral_interfacing      Package containing files for interfacing with the Arduino Nano, LCD, Speakers and IMU
      |  └── dingo_servo_interfacing           Package containing the hardware interface for sending joint angles to the servo motors
      └── dingo_utilities                      Package containing useful utilities
 ```
