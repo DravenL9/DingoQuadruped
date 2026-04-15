@@ -86,7 +86,7 @@ class KeyboardEvdev:
             self.current_joy.axes[7] = 1 if is_press else 0
 
         elif key_code == 'KEY_V':
-            self.current_joy.buttons[1] = 1 if is_press else 0  # Circle / voice
+            self.current_joy.buttons[1] = 1 if is_press else 0  # Circle button
 
         # Публикуем обновлённое сообщение
         self.current_joy.header.stamp = rospy.Time.now()

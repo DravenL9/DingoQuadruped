@@ -30,9 +30,9 @@ The following flow diagram shows a simplified overview of how a joystick command
      ├── dingo_description                    Package containing simulation files (URDF file and meshes)
      ├── dingo_gazebo                         Package containing gazebo files
      ├── dingo_hardware_interfacing
-     |  ├── dingo_input_interfacing           Package containing files for receiving and interpreting commands (From a joystick or keyboard)
-     |  ├── dingo_peripheral_interfacing      Package containing files for interfacing with the Arduino Nano, LCD, Speakers and IMU
-     |  └── dingo_servo_interfacing           Package containing the hardware interface for sending joint angles to the servo motors
+     |  ├── dingo_input_interfacing           Package containing files for receiving and interpreting commands (From a joystick or keyboard)
+     |  ├── dingo_peripheral_interfacing      Package containing files for interfacing with the Arduino Nano, LCD, and IMU
+     |  └── dingo_servo_interfacing           Package containing the hardware interface for sending joint angles to the servo motors
      └── dingo_utilities                      Package containing useful utilities
 ```
 
@@ -42,7 +42,6 @@ The following flow diagram shows a simplified overview of how a joystick command
 - Install [ros-noetic](http://wiki.ros.org/noetic/Installation/Ubuntu)
 - Install necessary packages via `sudo apt-get install python3-catkin-tools git python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool python3-pip build-essential wireless-tools libraspberrypi-bin ros-noetic-joy ros-noetic-catkin python3-catkin-tools i2c-tools libi2c-dev python3-smbus`
 - Install necessary python packages via `pip install spidev transforms3d adafruit-circuitpython-bno055 pillow rpi.gpio pyserial`
-- Install necessary python packages for pygame via `python3 -m pip install -U pip setuptools wheel python3 -m pip install pygame` 
 - Change directory to the home folder: `cd ~`
 - Clone this (the Dingo Quadruped) repository using git: `git clone ...`
 - Move into the dingo_ws folder: `cd /DingoQuadruped/dingo_ws`
@@ -289,7 +288,4 @@ An important note, as the entire ros workspace is volume mounted, files can be e
 The ROS extension has two options to enable debugging. The first is to attach to a running node which you start via the terminal with `rosrun package_name node_name`. The second is to debug from a launch file, where you use the debugger menu in vscode to launch a launch file and then set waypoints in any nodes which the launch file starts. To set this up, please watch [this video](https://youtu.be/N2vqBvPQdhE?list=PL2dJBq8ig-vihvDVw-D5zAYOArTMIX0FA)
 
 If the debugger is not stopping at breakpoints, you may need to edit the tasks.json file which tells vscode how to build the container. Ensure that the catkin build task defined in tasks.json includes the option `-DCMAKE_BUILD_TYPE=Debug`.
-
-
-
 
