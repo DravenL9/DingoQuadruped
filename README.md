@@ -42,6 +42,7 @@ The following flow diagram shows a simplified overview of how a joystick command
 - Install [ros-noetic](http://wiki.ros.org/noetic/Installation/Ubuntu)
 - Install necessary packages via `sudo apt-get install python3-catkin-tools git python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool python3-pip build-essential wireless-tools libraspberrypi-bin ros-noetic-joy ros-noetic-catkin python3-catkin-tools i2c-tools libi2c-dev python3-smbus`
 - Install necessary python packages via `pip install spidev transforms3d adafruit-circuitpython-bno055 pillow rpi.gpio pyserial`
+- Install necessary python packages for pygame via `python3 -m pip install -U pip setuptools wheel python3 -m pip install pygame` 
 - Change directory to the home folder: `cd ~`
 - Clone this (the Dingo Quadruped) repository using git: `git clone ...`
 - Move into the dingo_ws folder: `cd /DingoQuadruped/dingo_ws`
