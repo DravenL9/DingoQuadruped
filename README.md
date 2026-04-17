@@ -124,12 +124,12 @@ Quick audio checks:
 
 Common SSH + Bluetooth/PulseAudio issues and fixes:
 
-- `Failed to connect: org.bluez.Error.Failed br-connection-profile-unavailable`
+- `Failed to connect: org.bluez.Error.Failed br-connection-profile-unavailable` (exact BlueZ error text)
   - Usually wrong MAC/profile. Disconnect and connect the other `RADIOTEHN` address.
 - `pa_pid_file_create() failed` or PulseAudio does not start
   - Kill stale process/runtime state and restart:
     - `pulseaudio -k || true`
-    - `rm -rf /run/user/$(id -u)/pulse /run/user/$(id -u)/pulse/* 2>/dev/null || true`
+    - `rm -rf /run/user/$(id -u)/pulse 2>/dev/null || true`
     - `pulseaudio --start`
 - `No default controller available`
   - Bluetooth service is down:
