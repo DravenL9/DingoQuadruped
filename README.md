@@ -85,6 +85,62 @@ EOF`
 - reload the UDEV rules: `sudo udevadm control --reload`
 The controller should now autopair every time the pair button is pressed, without needing to do anything on the Pi
 
+#### Bluetooth Audio Setup (XYAP15H / RADIOTEHN amplifier)
+If you connect to the Raspberry Pi over SSH and want audio output to a Bluetooth amplifier (XYAP15H, shown as `RADIOTEHN`), install the required stack first:
+
+- `sudo apt-get update`
+- `sudo apt-get install -y bluetooth bluez bluez-tools pulseaudio pulseaudio-module-bluetooth pavucontrol alsa-utils`
+
+Start/enable Bluetooth and make sure PulseAudio is running for your SSH user session:
+
+- `sudo systemctl enable --now bluetooth`
+- `pulseaudio -k || true`
+- `pulseaudio --start`
+
+Pair/connect `RADIOTEHN` (this amplifier usually exposes **two Bluetooth MAC addresses**; one may refuse audio profile, so try both):
+
+1. `bluetoothctl`
+2. Inside `bluetoothctl`:
+   - `power on`
+   - `agent on`
+   - `default-agent`
+   - `scan on` (wait until you see one or two `RADIOTEHN` entries with different MAC addresses)
+   - `pair XX:XX:XX:XX:XX:XX`
+   - `trust XX:XX:XX:XX:XX:XX`
+   - `connect XX:XX:XX:XX:XX:XX`
+   - `info XX:XX:XX:XX:XX:XX` (check that audio UUIDs/profiles are present)
+3. If connect fails or no audio profile appears, repeat pair/connect with the second `RADIOTEHN` MAC.
+
+Select the Bluetooth sink for playback:
+
+- `pactl list short sinks`
+- `pactl set-default-sink <bluetooth_sink_name>`
+- Optional GUI (if desktop/session available): `pavucontrol`
+
+Quick audio checks:
+
+- `speaker-test -c 2 -t wav`
+- `aplay -l`
+
+Common SSH + Bluetooth/PulseAudio issues and fixes:
+
+- `Failed to connect: org.bluez.Error.Failed br-connection-profile-unavailable`
+  - Usually wrong MAC/profile. Disconnect and connect the other `RADIOTEHN` address.
+- `pa_pid_file_create() failed` or PulseAudio does not start
+  - Kill stale process/runtime state and restart:
+    - `pulseaudio -k || true`
+    - `rm -rf /run/user/$(id -u)/pulse /run/user/$(id -u)/pulse/* 2>/dev/null || true`
+    - `pulseaudio --start`
+- `No default controller available`
+  - Bluetooth service is down:
+    - `sudo systemctl restart bluetooth`
+    - `rfkill list`
+    - `sudo rfkill unblock bluetooth`
+- Device pairs but no sound output
+  - Set sink explicitly with `pactl set-default-sink ...` and verify in `pavucontrol`/`pactl list short sinks`.
+- `Connection refused` / `Not available` during SSH sessions
+  - Ensure commands are run under the same user that owns the audio session, then restart PulseAudio and reconnect.
+
 #### Wifi Setup
 To get WiFi working
 - Edit the file /etc/netplan/50-cloud-init.yaml 
@@ -288,4 +344,3 @@ An important note, as the entire ros workspace is volume mounted, files can be e
 The ROS extension has two options to enable debugging. The first is to attach to a running node which you start via the terminal with `rosrun package_name node_name`. The second is to debug from a launch file, where you use the debugger menu in vscode to launch a launch file and then set waypoints in any nodes which the launch file starts. To set this up, please watch [this video](https://youtu.be/N2vqBvPQdhE?list=PL2dJBq8ig-vihvDVw-D5zAYOArTMIX0FA)
 
 If the debugger is not stopping at breakpoints, you may need to edit the tasks.json file which tells vscode how to build the container. Ensure that the catkin build task defined in tasks.json includes the option `-DCMAKE_BUILD_TYPE=Debug`.
-
