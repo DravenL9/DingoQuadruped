@@ -89,12 +89,13 @@ The controller should now autopair every time the pair button is pressed, withou
 If you connect to the Raspberry Pi over SSH and want audio output to a Bluetooth amplifier (XYAP15H, shown as `RADIOTEHN`), install the required stack first:
 
 - `sudo apt-get update`
-- `sudo apt-get install -y bluetooth bluez bluez-tools pulseaudio pulseaudio-module-bluetooth pavucontrol alsa-utils`
+- `sudo apt-get install -y bluetooth bluez bluez-tools pulseaudio pulseaudio-module-bluetooth alsa-utils`
+- Optional (GUI mixer for desktop sessions): `sudo apt-get install -y pavucontrol`
 
 Start/enable Bluetooth and make sure PulseAudio is running for your SSH user session:
 
 - `sudo systemctl enable --now bluetooth`
-- `pulseaudio -k || true`
+- `pulseaudio -k || true` (stop old instance if it exists)
 - `pulseaudio --start`
 
 Pair/connect `RADIOTEHN` (this amplifier usually exposes **two Bluetooth MAC addresses**; one may refuse audio profile, so try both):
