@@ -32,7 +32,7 @@ joy_node / Keyboard.py ──/joy──▶ dingo_driver (dingo/scripts/dingo_dri
 /task_space_cmd  (TaskSpace)  ────▶│
 /emergency_stop_status (Bool) ────▶│
                                    ├──▶ HardwareInterface → PCA9685 → сервоприводы
-                                   └──▶ /<joint>_position_controller/command (Gazebo, is_sim:=1)
+                                   └──▶ /dingo_controller/<FR_theta1…>/command (Gazebo, is_sim:=1)
 Arduino Nano ─rosserial─▶ /electrical_measurements, /emergency_stop_status
 dingo_lcd_interfacing ◀── /electrical_measurements
 ```
