@@ -1,0 +1,306 @@
+% Пинаут ELTAY BB CM4. Сборка: xelatex eltay_bb_cm4_pinout.tex (шрифты DejaVu).
+% Источник данных: ELTAY BB CM4, техническая спецификация от 18.07.25
+% (табл. 1, п. 2.11-2.16, 3.3, прил. А). Плата REV1.00.
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=1.4cm,top=1.3cm,bottom=1.3cm]{geometry}
+\usepackage{fontspec}
+\usepackage[russian]{babel}
+\setmainfont{DejaVu Sans}
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{longtable,booktabs,array}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+
+\definecolor{cp5}{HTML}{D32F2F}
+\definecolor{cp33}{HTML}{F57C00}
+\definecolor{cgnd}{HTML}{263238}
+\definecolor{cgpio}{HTML}{ECEFF1}
+\definecolor{ci2c}{HTML}{81C784}
+\definecolor{cuart}{HTML}{4FC3F7}
+\definecolor{cspi}{HTML}{F06292}
+\definecolor{cpwm}{HTML}{FFF176}
+\definecolor{ci2s}{HTML}{B0BEC5}
+\definecolor{csd}{HTML}{FFCC80}
+
+\tikzset{lab/.style={font=\footnotesize\ttfamily,inner sep=1pt}}
+\newcommand{\pin}[5]{%
+  \node[circle,draw=black!70,fill=#4,minimum size=0.46cm,inner sep=0pt,
+        font=\scriptsize\bfseries,text=#5] at (#1,#2) {#3};}
+\newcommand{\altcell}[5]{%
+  \node[lab,anchor=#5,fill=#4,rounded corners=1.5pt,inner sep=2pt] at (#1,#2) {#3};}
+
+\begin{document}
+
+{\Large\bfseries ELTAY BB CM4 --- пинаут разъёма GPIO 40-pin и питание}\\[2pt]
+{\footnotesize Источник: техническая спецификация ELTAY BB CM4 от 18.07.25 (табл.~1, п.~2.11--2.16, табл.~2). Всё ниже взято из неё; чего в спецификации нет, помечено явно.}
+
+\vspace{4pt}
+\begin{tcolorbox}[colback=red!5,colframe=red!60!black,title={\bfseries Как можно запитать плату (по спецификации)},fonttitle=\small,boxsep=2pt,left=4pt,right=4pt,top=2pt,bottom=2pt]
+\footnotesize
+\begin{tabular}{@{}p{3.7cm}p{2.7cm}p{10.1cm}@{}}
+\bfseries USB Type-C (XS10) & \bfseries 5 В, до 15 Вт & Абс. макс. −0,5…6 В. Штатный вход 5 В/3 А. \\
+\bfseries 2-pin POWER (XP10) & \bfseries 7--27 В & Абс. макс. −0,3…40 В. В п.~1.3 указано 7--36 В, в п.~2.16 --- 7--27 В: опирайтесь на \textbf{7--27 В}. Только для исполнения платы с XP10 (аудиоразъём 3.5 мм тогда не распаян, прил.~А). \textbf{Полярность XP10 в спецификации не указана} --- смотрите шёлкографию платы. \\
+\bfseries Контакты 40-pin & \bfseries не описано & Пины 2, 4 (5~В) и 1, 17 (3.3~В) названы в таблице выводов, но спецификация \textbf{не говорит, что на них можно подавать питание на плату}, и не указывает допустимые токи. Подачу 5~В на пины 2/4 без схемы платы или подтверждения производителя не делайте. \\
+\end{tabular}
+\end{tcolorbox}
+
+\vspace{2pt}
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm]
+\pin{-0.42}{0.00}{1}{cp33}{white}
+\node[lab,anchor=east] at (-0.85,0.00) {\textbf{3.3 В}};
+\pin{0.42}{0.00}{2}{cp5}{white}
+\node[lab,anchor=west] at (0.85,0.00) {\textbf{5 В}};
+\pin{-0.42}{-0.60}{3}{ci2c}{black}
+\node[lab,anchor=east] at (-0.85,-0.60) {GPIO4\_B4};
+\altcell{-3.05}{-0.60}{I2C2\_SDA}{ci2c}{east}
+\pin{0.42}{-0.60}{4}{cp5}{white}
+\node[lab,anchor=west] at (0.85,-0.60) {\textbf{5 В}};
+\pin{-0.42}{-1.20}{5}{ci2c}{black}
+\node[lab,anchor=east] at (-0.85,-1.20) {GPIO4\_B5};
+\altcell{-3.05}{-1.20}{I2C2\_SCL}{ci2c}{east}
+\pin{0.42}{-1.20}{6}{cgnd}{white}
+\node[lab,anchor=west] at (0.85,-1.20) {\textbf{GND}};
+\pin{-0.42}{-1.80}{7}{cpwm}{black}
+\node[lab,anchor=east] at (-0.85,-1.80) {GPIO4\_C3};
+\altcell{-3.05}{-1.80}{PWM15}{cpwm}{east}
+\pin{0.42}{-1.80}{8}{cuart}{black}
+\node[lab,anchor=west] at (0.85,-1.80) {GPIO0\_D1};
+\altcell{3.05}{-1.80}{UART2\_TX}{cuart}{west}
+\pin{-0.42}{-2.40}{9}{cgnd}{white}
+\node[lab,anchor=east] at (-0.85,-2.40) {\textbf{GND}};
+\pin{0.42}{-2.40}{10}{cuart}{black}
+\node[lab,anchor=west] at (0.85,-2.40) {GPIO0\_D0};
+\altcell{3.05}{-2.40}{UART2\_RX}{cuart}{west}
+\pin{-0.42}{-3.00}{11}{ci2s}{black}
+\node[lab,anchor=east] at (-0.85,-3.00) {GPIO3\_C6};
+\altcell{-3.05}{-3.00}{I2S1\_MCLK}{ci2s}{east}
+\altcell{-5.55}{-3.00}{SDMMC2\_D0}{csd}{east}
+\pin{0.42}{-3.00}{12}{ci2s}{black}
+\node[lab,anchor=west] at (0.85,-3.00) {GPIO3\_C7};
+\altcell{3.05}{-3.00}{I2S1\_SCLK\_TX}{ci2s}{west}
+\altcell{5.55}{-3.00}{SDMMC2\_D1}{csd}{west}
+\pin{-0.42}{-3.60}{13}{cgpio}{black}
+\node[lab,anchor=east] at (-0.85,-3.60) {GPIO4\_A0};
+\pin{0.42}{-3.60}{14}{cgnd}{white}
+\node[lab,anchor=west] at (0.85,-3.60) {\textbf{GND}};
+\pin{-0.42}{-4.20}{15}{cuart}{black}
+\node[lab,anchor=east] at (-0.85,-4.20) {GPIO4\_A2};
+\altcell{-3.05}{-4.20}{UART7\_TX}{cuart}{east}
+\pin{0.42}{-4.20}{16}{cuart}{black}
+\node[lab,anchor=west] at (0.85,-4.20) {GPIO4\_A3};
+\altcell{3.05}{-4.20}{UART7\_RX}{cuart}{west}
+\pin{-0.42}{-4.80}{17}{cp33}{white}
+\node[lab,anchor=east] at (-0.85,-4.80) {\textbf{3.3 В}};
+\pin{0.42}{-4.80}{18}{cgpio}{black}
+\node[lab,anchor=west] at (0.85,-4.80) {GPIO4\_A1};
+\pin{-0.42}{-5.40}{19}{cspi}{black}
+\node[lab,anchor=east] at (-0.85,-5.40) {GPIO4\_B2};
+\altcell{-3.05}{-5.40}{SPI3\_MOSI}{cspi}{east}
+\altcell{-5.55}{-5.40}{I2C4\_SDA}{ci2c}{east}
+\pin{0.42}{-5.40}{20}{cgnd}{white}
+\node[lab,anchor=west] at (0.85,-5.40) {\textbf{GND}};
+\pin{-0.42}{-6.00}{21}{cspi}{black}
+\node[lab,anchor=east] at (-0.85,-6.00) {GPIO4\_B0};
+\altcell{-3.05}{-6.00}{SPI3\_MISO}{cspi}{east}
+\pin{0.42}{-6.00}{22}{cuart}{black}
+\node[lab,anchor=west] at (0.85,-6.00) {GPIO4\_A4};
+\altcell{3.05}{-6.00}{UART9\_TX}{cuart}{west}
+\pin{-0.42}{-6.60}{23}{cspi}{black}
+\node[lab,anchor=east] at (-0.85,-6.60) {GPIO4\_B3};
+\altcell{-3.05}{-6.60}{SPI3\_CLK}{cspi}{east}
+\altcell{-5.55}{-6.60}{I2C4\_SCL}{ci2c}{east}
+\pin{0.42}{-6.60}{24}{cspi}{black}
+\node[lab,anchor=west] at (0.85,-6.60) {GPIO4\_A6};
+\altcell{3.05}{-6.60}{SPI3\_CS0}{cspi}{west}
+\pin{-0.42}{-7.20}{25}{cgnd}{white}
+\node[lab,anchor=east] at (-0.85,-7.20) {\textbf{GND}};
+\pin{0.42}{-7.20}{26}{cspi}{black}
+\node[lab,anchor=west] at (0.85,-7.20) {GPIO4\_A7};
+\altcell{3.05}{-7.20}{SPI3\_CS1}{cspi}{west}
+\pin{-0.42}{-7.80}{27}{ci2c}{black}
+\node[lab,anchor=east] at (-0.85,-7.80) {GPIO1\_A0};
+\altcell{-3.05}{-7.80}{I2C3\_SDA}{ci2c}{east}
+\pin{0.42}{-7.80}{28}{ci2c}{black}
+\node[lab,anchor=west] at (0.85,-7.80) {GPIO1\_A1};
+\altcell{3.05}{-7.80}{I2C3\_SCL}{ci2c}{west}
+\pin{-0.42}{-8.40}{29}{cuart}{black}
+\node[lab,anchor=east] at (-0.85,-8.40) {GPIO4\_A5};
+\altcell{-3.05}{-8.40}{UART9\_RX}{cuart}{east}
+\pin{0.42}{-8.40}{30}{cgnd}{white}
+\node[lab,anchor=west] at (0.85,-8.40) {\textbf{GND}};
+\pin{-0.42}{-9.00}{31}{ci2s}{black}
+\node[lab,anchor=east] at (-0.85,-9.00) {GPIO3\_D4};
+\altcell{-3.05}{-9.00}{I2S1\_SDI2}{ci2s}{east}
+\altcell{-5.55}{-9.00}{SDMMC2\_DET}{csd}{east}
+\pin{0.42}{-9.00}{32}{cpwm}{black}
+\node[lab,anchor=west] at (0.85,-9.00) {GPIO4\_C0};
+\altcell{3.05}{-9.00}{PWM11}{cpwm}{west}
+\pin{-0.42}{-9.60}{33}{cgpio}{black}
+\node[lab,anchor=east] at (-0.85,-9.60) {GPIO3\_D7};
+\pin{0.42}{-9.60}{34}{cgnd}{white}
+\node[lab,anchor=west] at (0.85,-9.60) {\textbf{GND}};
+\pin{-0.42}{-10.20}{35}{ci2s}{black}
+\node[lab,anchor=east] at (-0.85,-10.20) {GPIO3\_D0};
+\altcell{-3.05}{-10.20}{I2S1\_LRCK\_TX}{ci2s}{east}
+\altcell{-5.55}{-10.20}{SDMMC2\_D2}{csd}{east}
+\pin{0.42}{-10.20}{36}{ci2s}{black}
+\node[lab,anchor=west] at (0.85,-10.20) {GPIO3\_D5};
+\altcell{3.05}{-10.20}{I2S1\_SDI3}{ci2s}{west}
+\altcell{5.55}{-10.20}{SDMMC2\_PWREN}{csd}{west}
+\pin{-0.42}{-10.80}{37}{ci2s}{black}
+\node[lab,anchor=east] at (-0.85,-10.80) {GPIO3\_D3};
+\altcell{-3.05}{-10.80}{I2S1\_SDI1}{ci2s}{east}
+\altcell{-5.55}{-10.80}{SDMMC2\_CLK}{csd}{east}
+\pin{0.42}{-10.80}{38}{ci2s}{black}
+\node[lab,anchor=west] at (0.85,-10.80) {GPIO3\_D2};
+\altcell{3.05}{-10.80}{I2S1\_SDI0}{ci2s}{west}
+\altcell{5.55}{-10.80}{SDMMC2\_CMD}{csd}{west}
+\pin{-0.42}{-11.40}{39}{cgnd}{white}
+\node[lab,anchor=east] at (-0.85,-11.40) {\textbf{GND}};
+\pin{0.42}{-11.40}{40}{ci2s}{black}
+\node[lab,anchor=west] at (0.85,-11.40) {GPIO3\_D1};
+\altcell{3.05}{-11.40}{I2S1\_SDO0}{ci2s}{west}
+\altcell{5.55}{-11.40}{SDMMC2\_D3}{csd}{west}
+% заголовки колонок
+\node[font=\scriptsize\bfseries,anchor=east] at (-0.85,0.55) {Имя};
+\node[font=\scriptsize\bfseries,anchor=east] at (-3.05,0.55) {ALT1};
+\node[font=\scriptsize\bfseries,anchor=east] at (-5.55,0.55) {ALT2};
+\node[font=\scriptsize\bfseries,anchor=west] at (0.85,0.55) {Имя};
+\node[font=\scriptsize\bfseries,anchor=west] at (3.05,0.55) {ALT1};
+\node[font=\scriptsize\bfseries,anchor=west] at (5.55,0.55) {ALT2};
+\node[font=\scriptsize\bfseries] at (-0.42,0.55) {нечёт.};
+\node[font=\scriptsize\bfseries] at (0.42,0.55) {чёт.};
+% ориентация: вид сверху, как на рис. 1 и 5 спецификации
+\begin{scope}[shift={(-8.6,-14.1)},scale=0.55]
+  \draw[thick,rounded corners=2pt] (0,0) rectangle (5.6,3.4);
+  \fill[black!80] (0.5,2.85) rectangle (5.0,3.3);
+  \foreach \i in {0,...,19}{\fill[yellow!80!orange] (0.6+\i*0.22,3.19) circle (0.05);\fill[yellow!80!orange] (0.6+\i*0.22,2.96) circle (0.05);}
+  \draw[red,thick] (0.52,2.89) rectangle (0.68,3.03);
+  \node[font=\tiny,anchor=north] at (2.8,2.75) {GPIO 40-pin};
+  \node[font=\tiny,red,anchor=east] at (0.45,2.7) {пин 1};
+  \draw[red,->] (0.1,2.55) -- (0.55,2.9);
+  \fill[blue!20] (4.1,1.9) rectangle (5.55,2.75); \node[font=\tiny] at (4.85,2.32) {Ethernet};
+  \fill[black!15] (4.1,0.1) rectangle (5.55,1.7); \node[font=\tiny,align=center] at (4.85,0.9) {USB\\2.0/3.0};
+  \fill[black!15] (0.15,0.1) rectangle (0.95,0.6); \node[font=\tiny,anchor=south west] at (0.15,0.6) {USB-C};
+  \node[font=\tiny\itshape,anchor=north] at (2.8,-0.05) {вид сверху};
+\end{scope}
+% легенда
+\foreach \c/\t [count=\i from 0] in {cp5/{5 В},cp33/{3.3 В},cgnd/{GND},cgpio/{GPIO},ci2c/{I2C},cuart/{UART},cspi/{SPI},cpwm/{ШИМ},ci2s/{I2S},csd/{SDMMC}}{
+  \pgfmathsetmacro{\lx}{-4.6+mod(\i,5)*2.6}
+  \pgfmathsetmacro{\ly}{-12.5-int(\i/5)*0.65}
+  \fill[\c,draw=black!60] (\lx,\ly) circle (0.13);
+  \node[font=\scriptsize,anchor=west] at (\lx+0.22,\ly) {\t};}
+\end{tikzpicture}
+\end{center}
+
+{\footnotesize Нумерация и расположение --- по табл.~1 и рис.~5 спецификации: нечётные пины в ряду, ближнем к центру платы, пин~1 --- у левого края (красный квадрат на рис.~5), вид сверху. Уровень сигналов GPIO выбирается впаянным резистором: \textbf{R78 --- 3.3~В, R77 --- 1.8~В} (второй не впаивается); исключение --- GPIO0\_D0 и GPIO0\_D1 (пины 10 и 8), у них всегда 3.3~В. До подключения проверьте, какой резистор стоит на вашей плате. Подача 3.3~В на линии при 1.8~В выходит за допустимое.}
+
+\newpage
+{\large\bfseries Таблица выводов GPIO 40-pin}\\[3pt]
+\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{longtable}{@{}>{\bfseries}r l l l p{5.2cm}@{}}
+\toprule
+\textnormal{№} & Имя (GPIO) & ALT1 & ALT2 & Примечание \\
+\midrule
+\endhead
+1 & 3.3 В &  &  &  \\
+2 & 5 В &  &  &  \\
+3 & GPIO4\_B4 & I2C2\_SDA &  & подтяжка 2.2 кОм \\
+4 & 5 В &  &  &  \\
+5 & GPIO4\_B5 & I2C2\_SCL &  & подтяжка 2.2 кОм \\
+6 & GND &  &  &  \\
+7 & GPIO4\_C3 & PWM15 &  &  \\
+8 & GPIO0\_D1 & UART2\_TX &  & только 3.3 В; отладочный UART \\
+9 & GND &  &  &  \\
+10 & GPIO0\_D0 & UART2\_RX &  & только 3.3 В; отладочный UART \\
+11 & GPIO3\_C6 & I2S1\_MCLK & SDMMC2\_D0 &  \\
+12 & GPIO3\_C7 & I2S1\_SCLK\_TX & SDMMC2\_D1 &  \\
+13 & GPIO4\_A0 &  &  &  \\
+14 & GND &  &  &  \\
+15 & GPIO4\_A2 & UART7\_TX &  &  \\
+16 & GPIO4\_A3 & UART7\_RX &  &  \\
+17 & 3.3 В &  &  &  \\
+18 & GPIO4\_A1 &  &  &  \\
+19 & GPIO4\_B2 & SPI3\_MOSI & I2C4\_SDA &  \\
+20 & GND &  &  &  \\
+21 & GPIO4\_B0 & SPI3\_MISO &  &  \\
+22 & GPIO4\_A4 & UART9\_TX &  &  \\
+23 & GPIO4\_B3 & SPI3\_CLK & I2C4\_SCL &  \\
+24 & GPIO4\_A6 & SPI3\_CS0 &  &  \\
+25 & GND &  &  &  \\
+26 & GPIO4\_A7 & SPI3\_CS1 &  &  \\
+27 & GPIO1\_A0 & I2C3\_SDA &  &  \\
+28 & GPIO1\_A1 & I2C3\_SCL &  &  \\
+29 & GPIO4\_A5 & UART9\_RX &  &  \\
+30 & GND &  &  &  \\
+31 & GPIO3\_D4 & I2S1\_SDI2 & SDMMC2\_DET &  \\
+32 & GPIO4\_C0 & PWM11 &  &  \\
+33 & GPIO3\_D7 &  &  &  \\
+34 & GND &  &  &  \\
+35 & GPIO3\_D0 & I2S1\_LRCK\_TX & SDMMC2\_D2 &  \\
+36 & GPIO3\_D5 & I2S1\_SDI3 & SDMMC2\_PWREN &  \\
+37 & GPIO3\_D3 & I2S1\_SDI1 & SDMMC2\_CLK &  \\
+38 & GPIO3\_D2 & I2S1\_SDI0 & SDMMC2\_CMD &  \\
+39 & GND &  &  &  \\
+40 & GPIO3\_D1 & I2S1\_SDO0 & SDMMC2\_D3 &  \\
+\bottomrule
+\end{longtable}
+
+\vspace{2pt}
+{\large\bfseries Шины на разъёме}\\[3pt]
+\footnotesize
+\begin{tabular}{@{}l l p{9cm}@{}}
+\toprule
+Шина & Пины & Замечание \\
+\midrule
+I2C2 (SDA/SCL) & 3 / 5 & Подтяжка 2.2 кОм на плате. \\
+I2C3 (SDA/SCL) & 27 / 28 & \\
+I2C4 (SDA/SCL) & 19 / 23 & Это ALT2 пинов SPI3\_MOSI/SPI3\_CLK: одновременно с SPI3 использовать нельзя. \\
+SPI3 & MOSI 19, MISO 21, CLK 23, CS0 24, CS1 26 & \\
+UART7 (TX/RX) & 15 / 16 & \\
+UART9 (TX/RX) & 22 / 29 & \\
+UART2 (TX/RX) & 8 / 10 & Отладочный UART, продублирован на XP8; только 3.3~В. Занимать под прикладные задачи не стоит. \\
+ШИМ & PWM15 --- 7, PWM11 --- 32 & \\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+{\footnotesize Номера устройств в Linux (\texttt{/dev/i2c-N}, \texttt{/dev/ttyS*}, \texttt{spidev}) зависят от образа ОС и дерева устройств модуля; в спецификации платы их нет. Альтернативные функции берутся из документации на установленный модуль (ELTAY RM66 / Orange Pi CM4).}
+
+\newpage
+{\large\bfseries Прочие разъёмы, важные при запуске}\\[4pt]
+\footnotesize
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.4cm} >{\raggedright\arraybackslash}p{3.6cm} >{\raggedright\arraybackslash}p{10.6cm}@{}}
+\toprule
+Разъём & Контакты & Назначение \\
+\midrule
+Вентилятор, 4-pin 2.54 мм & GND, 5 В, FAN, PWM (по шёлкографии сверху вниз) & 5-вольтовый вентилятор, управление ШИМ (PWM7), настраивается в ОС. \\
+XP8, 3-pin & GND, RX, TX (сверху вниз) & Выведенный отладочный UART2. Уровень 3.3 В. \\
+XP7, 4-pin (PoE) & 1--4: TR0\_TAP \ldots\ TR3\_TAP & Выводы PoE (средние точки Ethernet-трансформатора), предназначены для PoE HAT. Как обычный вход питания не использовать. \\
+USB Type-C (XS10) & VBUS, GND, CC1/CC2, SHD & CC1 и CC2 подтянуты к GND резисторами 5.1 кОм. SHD (экран) соединён с GND. При питании от XP10 можно отдавать наружу не более 1 А. \\
+Кнопки & BOOT, RESET, RECOVERY & BOOT --- Maskrom, RESET --- перезапуск SoC, RECOVERY --- режим Recovery. \\
+Светодиоды & PWR, WORK, PCIe & PWR --- есть 3.3 В от модуля, WORK --- пользовательский. \\
+\bottomrule
+\end{tabular}
+
+\vspace{8pt}
+{\large\bfseries Перед первой подачей питания}\\[3pt]
+\footnotesize
+\begin{enumerate}\setlength\itemsep{1pt}
+\item Определите исполнение платы: аудиоразъём 3.5 мм или XP10 (7--27 В). Они взаимоисключающие.
+\item Проверьте, какой из резисторов R77/R78 запаян (3.3 или 1.8 В на GPIO).
+\item Для XP10: до подключения источника определите полярность. На схеме USB Type-C экран и контакты GND соединены, так что минус XP10 должен звониться на корпус USB-C разъёма. Защита от переполюсовки в спецификации не описана, поэтому полярность ошибаться нельзя.
+\item Первый запуск --- от лабораторного блока питания с ограничением тока; с USB Type-C --- от источника 5 В.
+\item Напряжение АКБ Dingo 4S (14.8--16.8 В, по прошивке Arduino) укладывается в диапазон XP10 7--27 В, но подключать его напрямую стоит только после проверки полярности и установки предохранителя.
+\item Установленный модуль: полная совместимость --- ELTAY RM66 и Orange Pi CM4; Raspberry Pi CM4 --- ограниченная.
+\end{enumerate}
+
+\end{document}
