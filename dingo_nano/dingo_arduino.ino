@@ -1,20 +1,20 @@
-#include <ros.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Float32.h>
-// #include <Dingo_Peripheral_Interfacing/ElectricalMeasurements.h>
-#include "C:\Users\Admin\Documents\Arduino\libraries\Dingo_Peripheral_InterfacingElectricalMeasurements\src\ElectricalMeasurements.h"
-//#include "Dingo_Peripheral_InterfacingElectricalMeasurements/src/ElectricalMeasurements.h"
 #include <avr/sleep.h>
 
-ros::NodeHandle_<ArduinoHardware, 5, 5, 128, 256> arduino_nano_node;  //(max) 5 publishers, 2 subscribers, 64 byte input buffer, 256 byte output buffer. Default is 25,25,512,512
+// ROS 2 port: rosserial does not exist for ROS 2 and micro-ROS does not fit an ATmega328 (Nano V3), so the
+// Nano just prints one text frame per second (and immediately when the e-stop state changes) to Serial. The
+// computer reads it with the arduino_bridge node of dingo_peripheral_interfacing, which publishes
+// /electrical_measurements and /emergency_stop_status.
+//
+// Frame:  $DINGO,<estop 0|1>,<battery volts>,<servo buck volts>*<XOR checksum, 2 hex digits>\n
+//   e.g.  $DINGO,0,16.42,7.03*62
+// The checksum is the XOR of all characters between '$' and '*'.
+// A line starting with '#' is a human readable log message.
 
-//Declare global message variables for storing data to publish
-std_msgs::Bool emergency_stop_msg;
-dingo_peripheral_interfacing::ElectricalMeasurements electrical_measurement_msg;
+const long serial_baud = 57600;
 
-//Declare publishers for data to be published on topics
-ros::Publisher emergency_stop_status_publisher("emergency_stop_status", &emergency_stop_msg);
-ros::Publisher electrical_measurement_publisher("electrical_measurements", &electrical_measurement_msg);
+// Latest measurements, sent by sendFrame()
+float battery_voltage_level = 0.0;
+float servo_buck_voltage_level = 0.0;
 
 //Declare constants
 const int publish_interval = 1;  // publish voltage every 1 second
@@ -48,49 +48,23 @@ int number_of_low_buck_voltage_detections = 0;
 bool currently_estopped = 0;
 
 void setup() {
-  // Wait 15 seconds before checking starting serial.
-  // This avoids Raspberry Pi detecting serial console keystrokes and stopping autoboot.
+  // Wait 15 seconds before starting serial, so that the computer has finished booting.
   delay(15000);
 
-  
-  
-
-  // This function is required by arduino standards, and is run once on startup to initialise ros, publishers, subscribers and array initial values
-  Serial.begin(57600);
-
-  while (!Serial.available()) {
-    // Wait 1 second before checking again
-    delay(1000);
-  }
-  
-  
-
-  arduino_nano_node.getHardware()->setBaud(57600);
-  // Initialise ros node, and advertise publishers
-  arduino_nano_node.initNode();
+  Serial.begin(serial_baud);
 
   pinMode(3, OUTPUT);
   digitalWrite(3, HIGH);
   delay(250) ;
   digitalWrite(3 , LOW);
-
-  arduino_nano_node.advertise(emergency_stop_status_publisher);
-  arduino_nano_node.advertise(electrical_measurement_publisher);
-
-  // Multiple spins and delays to allow time for publishers to be properly setup before data is collected and transmitted
-  arduino_nano_node.spinOnce();
-  delay(1000);
-  arduino_nano_node.spinOnce();
-  delay(1000);
-  arduino_nano_node.spinOnce();
-  delay(1000);
 }
 
 void shutdown() {
   // Shuts the arduino down if the voltage level is too low
 
-  // Log the shutdown in ROS logs
-  arduino_nano_node.logwarn("BATTERY VOLTAGE TOO LOW: NANO POWERING DOWN");
+  // Log the shutdown to the computer
+  Serial.println(F("#BATTERY VOLTAGE TOO LOW: NANO POWERING DOWN"));
+  Serial.flush();
   delay(1000);
 
   // Put arduino to sleep, which is as close to shutdown as possible
@@ -119,8 +93,8 @@ void checkBatteryVoltageLevel() {
   // Serial.println(String(pin_voltage));
   // Serial.println(String(battery_average_voltage));
 
-  // Write the current average voltage to the publisher message
-  electrical_measurement_msg.battery_voltage_level = battery_average_voltage;
+  // Store the current average voltage, it is sent in the next frame
+  battery_voltage_level = battery_average_voltage;
 
   // Check whether the voltage is below the minimum. If so, increment the number of low battery detections. If too many have occured, order shutdown of nano
   if (battery_average_voltage < battery_minimum_voltage) {
@@ -162,8 +136,8 @@ void checkBuckVoltageLevel() {
   // Serial.println(String(pin_voltage));
   // Serial.println(String(servobuck_average_voltage));
 
-  // Write the current average voltage to the publisher message
-  electrical_measurement_msg.servo_buck_voltage_level = servobuck_average_voltage;
+  // Store the current average voltage, it is sent in the next frame
+  servo_buck_voltage_level = servobuck_average_voltage;
 
   // Check whether the buck converter voltage has dropped to 0 (or near 0). If it has, send message that the e-stop has been pressed
   if (servobuck_average_voltage < servobuck_minimum_voltage) {
@@ -171,8 +145,7 @@ void checkBuckVoltageLevel() {
       number_of_low_buck_voltage_detections = number_of_low_buck_voltage_detections + 1;
     } else if (currently_estopped == 0) {
       currently_estopped = 1;
-      emergency_stop_msg.data = 1;
-      emergency_stop_status_publisher.publish(&emergency_stop_msg);
+      sendFrame();
     }
   }  // If buck converter voltage has recently increased from 0, send message that e-stop has been released
   else if (servobuck_average_voltage > servobuck_minimum_voltage) {
@@ -180,8 +153,7 @@ void checkBuckVoltageLevel() {
       number_of_low_buck_voltage_detections = number_of_low_buck_voltage_detections - 1;
     } else if (currently_estopped == 1) {
       currently_estopped = 0;
-      emergency_stop_msg.data = 0;
-      emergency_stop_status_publisher.publish(&emergency_stop_msg);
+      sendFrame();
     }
   }
 
@@ -195,9 +167,9 @@ void checkBuckVoltageLevel() {
 
 void loop() {
   // This function is required by arduino and runs constantly in a loop while it is powered
-  // It calls functions to measure sensor data on every loop, publishing this data to topics. Also spins topics to clear buffers
+  // It calls functions to measure sensor data on every loop and sends the data to the computer
 
-  static unsigned long lastPublishMillis = 0;  // last time the message was published
+  static unsigned long lastPublishMillis = 0;  // last time a frame was sent
   unsigned long currentMillis = millis();      // current time
 
   // Check voltage of battery and buck converter output
@@ -205,17 +177,37 @@ void loop() {
   checkBuckVoltageLevel();
 
 
-  // Publish electrical measurements to the electrical measurement topic
+  // Send the electrical measurements to the computer
   if (currentMillis - lastPublishMillis >= publish_interval * 1000) {
-    electrical_measurement_publisher.publish(&electrical_measurement_msg);
+    sendFrame();
     lastPublishMillis = currentMillis;
   }
 
-  // Spin nodes
-  arduino_nano_node.spinOnce();
-
   // Runs every 100ms at the moment.
-  delay(100);  //NOTE: ros-serial does not have an equivalent ros sleep function, so need to use native delay. Not a major issue for us.
+  delay(100);
+}
+
+void sendFrame() {
+  // Prints "$DINGO,<estop>,<battery V>,<servo buck V>*<checksum>" followed by a newline
+  char battery[12];
+  char buck[12];
+  char payload[48];
+  dtostrf(battery_voltage_level, 1, 2, battery);
+  dtostrf(servo_buck_voltage_level, 1, 2, buck);
+  snprintf(payload, sizeof(payload), "DINGO,%d,%s,%s", currently_estopped ? 1 : 0, battery, buck);
+
+  byte checksum = 0;
+  for (const char* c = payload; *c; c++) {
+    checksum ^= *c;
+  }
+
+  Serial.print('$');
+  Serial.print(payload);
+  Serial.print('*');
+  if (checksum < 16) {
+    Serial.print('0');
+  }
+  Serial.println(checksum, HEX);
 }
 
 float calculateAverageVoltage(float last_voltage, float voltage_array[], int voltage_array_size, float& filtered_voltage, float reference_voltage) {

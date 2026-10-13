@@ -18,6 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-rmw-cyclonedds-cpp \
     i2c-tools \
     python3-smbus \
+    python3-libgpiod \
+    python3-evdev \
     gdb \
     nano \
     git \
@@ -35,6 +37,10 @@ RUN pip3 install --no-cache-dir \
     numpy
 
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+
+# Adafruit Blinka does not know the ELTAY RM66 / ELTAY BB CM4. ORANGE_PI_3B has the same 40-pin map and I2C2 as default bus.
+ENV BLINKA_FORCEBOARD=ORANGE_PI_3B
+ENV BLINKA_FORCECHIP=RK3566
 
 RUN echo "source /opt/ros/humble/setup.bash" >> /etc/bash.bashrc
 

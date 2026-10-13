@@ -2,7 +2,9 @@
 from adafruit_servokit import ServoKit
 import numpy as np
 import math as m
-import rospy
+import logging
+
+logger = logging.getLogger(__name__)
 
 class HardwareInterface():
     def __init__(self,link):
@@ -77,7 +79,7 @@ class HardwareInterface():
                 try:
                     self.kit.servo[self.pins[axis_index,leg_index]].angle = self.servo_angles[axis_index,leg_index]
                 except:
-                    rospy.logwarn("Warning - I2C IO error")
+                    logger.warning("Warning - I2C IO error")
 ## HERE ##
 
     ##  This method is used only in the calibrate servos file will make something similar to command individual actuators. 

@@ -1,30 +1,36 @@
 #!/usr/bin/env python3
 
-import rospy
 import sys
 import threading
+import rclpy
+from rclpy.executors import ExternalShutdownException
+from rclpy.logging import get_logger
+from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from evdev import InputDevice, categorize, ecodes
 
-# === НАСТРОЙКА: УКАЖИТЕ ПУТЬ К УСТРОЙСТВУ КЛАВИАТУРЫ ===
-KEYBOARD_DEVICE = "/dev/input/event0"
-# Если не знаете точный путь — используйте /dev/input/eventX (например, event3)
+# === НАСТРОЙКА: ПУТЬ К УСТРОЙСТВУ КЛАВИАТУРЫ — параметр узла keyboard_device ===
+# Значение по умолчанию ниже. Если не знаете точный путь — используйте /dev/input/eventX (например, event3)
 # ИЛИ замените на автоопределение (см. примечание внизу)
+KEYBOARD_DEVICE = "/dev/input/event0"
 
-class KeyboardEvdev:
-    def __init__(self, device_path):
-        self.device = InputDevice(device_path)
+class KeyboardEvdev(Node):
+    def __init__(self):
+        super().__init__("keyboard_input_listener")
+        self.declare_parameter("keyboard_device", KEYBOARD_DEVICE)
+        self.device_path = self.get_parameter("keyboard_device").value
+        self.device = InputDevice(self.device_path)
         self.device.grab()  # Захватываем устройство, чтобы другие не ловили события
 
         self.speed_multiplier = 1
-        self.joy_pub = rospy.Publisher("joy", Joy, queue_size=10)
+        self.joy_pub = self.create_publisher(Joy, "joy", 10)
 
         self.current_joy = Joy()
         self.current_joy.axes = [0.0] * 8
         self.current_joy.buttons = [0] * 11
 
         self.running = True
-        self.thread = threading.Thread(target=self._event_loop)
+        self.thread = threading.Thread(target=self._event_loop, daemon=True)
         self.thread.start()
 
     def _event_loop(self):
@@ -89,21 +95,20 @@ class KeyboardEvdev:
             self.current_joy.buttons[1] = 1 if is_press else 0  # Circle button
 
         # Публикуем обновлённое сообщение
-        self.current_joy.header.stamp = rospy.Time.now()
+        self.current_joy.header.stamp = self.get_clock().now().to_msg()
         self.joy_pub.publish(self.current_joy)
 
     def stop(self):
         self.running = False
         self.device.ungrab()
-        self.thread.join()
+        self.thread.join(timeout=1.0)
 
 # === ОСНОВНОЙ ЗАПУСК ===
-def main():
-    rospy.init_node("keyboard_input_listener", anonymous=True)
-    rate = rospy.Rate(30)
+def main(args=None):
+    rclpy.init(args=args)
 
     # Автоматическое определение клавиатуры (опционально)
-    # Если хотите — раскомментируйте этот блок и закомментируйте KEYBOARD_DEVICE
+    # Если хотите — раскомментируйте этот блок и задайте путь вместо параметра keyboard_device
     """
     from evdev import list_devices, InputDevice
     devices = [InputDevice(fn) for fn in list_devices()]
@@ -113,24 +118,27 @@ def main():
             kb_device = dev.path
             break
     if not kb_device:
-        rospy.logfatal("No keyboard found in /dev/input/")
+        get_logger("keyboard_input_listener").fatal("No keyboard found in /dev/input/")
         sys.exit(1)
     """
 
     try:
-        kb = KeyboardEvdev(KEYBOARD_DEVICE)
-        rospy.loginfo(f"Keyboard listener started on {KEYBOARD_DEVICE}")
+        kb = KeyboardEvdev()
+        kb.get_logger().info(f"Keyboard listener started on {kb.device_path}")
     except Exception as e:
-        rospy.logfatal(f"Failed to open keyboard device {KEYBOARD_DEVICE}: {e}")
+        get_logger("keyboard_input_listener").fatal(f"Failed to open keyboard device: {e}")
+        rclpy.shutdown()
         sys.exit(1)
 
     try:
-        while not rospy.is_shutdown():
-            rate.sleep()
-    except KeyboardInterrupt:
+        rclpy.spin(kb)
+    except (KeyboardInterrupt, ExternalShutdownException):
         pass
     finally:
         kb.stop()
+        kb.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
